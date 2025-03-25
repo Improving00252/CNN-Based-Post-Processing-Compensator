@@ -23,23 +23,37 @@ class RDB(nn.Module):
     def forward(self, x):
         return x + self.lff(self.layers(x))  # local residual learning
 
-class FeatureReview(nn.Module):
+class Gaussian_Block(nn.Module):
     def __init__(self, in_channels):
-        super(FeatureReview, self).__init__()
+        super(Gaussian_Block, self).__init__()
         self.conv = nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=3 // 2)
         self.leaky_relu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
 
     def forward(self, x):
-        return self.leaky_relu(self.conv(x))
+        identity = x
+        return self.leaky_relu(self.conv(x))+identity
+
+class Residual_Block(nn.Module):
+    def __init__(self, in_channels):
+        super(Residual_Block, self).__init__()
+        self.conv = nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=3 // 2)
+        self.leaky_relu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
+
+    def forward(self, x):
+        identity = x
+        return self.leaky_relu(self.conv(x))+identity
         
-class RDN(nn.Module):
-    def __init__(self, num_channels, num_features, growth_rate, num_blocks, num_layers):
-        super(RDN, self).__init__()
+        
+class Three_Channels_RDN(nn.Module):
+    def __init__(self, num_channels, num_features, growth_rate, num_blocks, num_layers, gaussian_num, residual_num):
+        super(Three_Channels_RDN, self).__init__()
         #num_channels = 16
         self.G0 = num_features #64
         self.G = growth_rate #64
         self.D = num_blocks #16
         self.C = num_layers #8
+        self.gaussian_num = gaussian_num #8
+        self.residual_num = residual_num #8
 
         # shallow feature extraction
         self.sfe1 = nn.Conv2d(num_channels, num_features, kernel_size=3, padding=1)
@@ -58,14 +72,20 @@ class RDN(nn.Module):
         )
         self.conv = nn.Conv2d(self.G0,self.G0, kernel_size=3, padding=3 // 2)
 
+        #gaussian_mask
+        self.gaussian_blocks = nn.ModuleList([Gaussian_Block(num_channels) for _ in range(gaussian_num)])
+        #residual_mask
+        self.residual_blocks = nn.ModuleList([Residual_Block(num_channels) for _ in range(residual_num)])
         # output layer
         self.leaky_relu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
         #self.output = nn.Conv2d(self.G0, num_channels, kernel_size=3, padding=3 // 2)
         
         self.output = nn.Conv2d(self.G0, num_channels, kernel_size=1)
+        self.final = nn.Conv2d(num_channels, num_channels, kernel_size=1)
         self.tanh = nn.Tanh()
 
-    def forward(self, x):
+    def forward(self, x, y, z):
+        #cnn1
         original = x
         sfe1 = self.sfe1(x)
         sfe1 = self.leaky_relu(sfe1)
@@ -83,13 +103,28 @@ class RDN(nn.Module):
         x = self.leaky_relu(x)
         x = self.conv(x)
         x = self.leaky_relu(x)
+
         out = sfe1 + x
         out = self.conv(out)
         out = self.leaky_relu(out)
         out = self.output(out)
+
+        #cnn2
+        gaussian = y
+        for block in self.gaussian_blocks[:self.gaussian_num]:
+            gaussian = block(gaussian)
+
+        #cnn3
+        residual = z
+        for block in self.residual_blocks[:self.residual_num]:
+            residual = block(residual)
+
+        # side information fusion
+        out = out + gaussian + residual
+        out = self.final(out)
+        out = self.leaky_relu(out)
+        out = self.final(out)
         out = self.tanh(out)
         out = out + original
-
-
 
         return out # adding the residual back to the input
