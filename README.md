@@ -18,6 +18,9 @@ It is designed to compensate for compression-induced distortions in intermediate
     from .two_channels_compensator import two_channels_compensator\
     from .three_channels_models import Three_Channels_RDN\
     from .three_channels_compensator import three_channels_compensator\
+    x["data"] = fctm_compensator(x["data"])\
+    x["data"] = two_channels_compensator(x["data"])\
+    x["data"] = three_channels_compensator(x["data"])\
   
 
 ## Acknowledgements
