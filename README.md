@@ -21,7 +21,15 @@ It is designed to compensate for compression-induced distortions in intermediate
     x["data"] = fctm_compensator(x["data"])\
     x["data"] = two_channels_compensator(x["data"])\
     x["data"] = three_channels_compensator(x["data"])\
-  
+    
+## 📦 Pretrained Models
+
+| Branch         | Description                              | Download Link |
+|----------------|------------------------------------------|---------------|
+| `main`         | Single-channel baseline                  | [Download](https://github.com/Improving00252/CNN-Based-Post-Processing-Compensator/releases/tag/single) |
+| `two_channel`  | Two-channel with Gaussian mask           | [Download](https://github.com/Improving00252/CNN-Based-Post-Processing-Compensator/releases/tag/double_channel_compensator) |
+| `three_channel`| Three-channel with residual & blur mask  | [Download](https://github.com/Improving00252/CNN-Based-Post-Processing-Compensator/releases/tag/triple_channels_compensator) |
+
 
 ## Acknowledgements
 
