@@ -12,12 +12,12 @@ It is designed to compensate for compression-induced distortions in intermediate
 
 ## Usage
 
-  from .models import RDN
-  from .fctm_compensator import fctm_compensator
-  from .two_channels_models import Two_Channels_RDN
-  from .two_channels_compensator import two_channels_compensator
-  from .three_channels_models import Three_Channels_RDN
-  from .three_channels_compensator import three_channels_compensator
+    from .models import RDN\
+    from .fctm_compensator import fctm_compensator\
+    from .two_channels_models import Two_Channels_RDN\
+    from .two_channels_compensator import two_channels_compensator\
+    from .three_channels_models import Three_Channels_RDN\
+    from .three_channels_compensator import three_channels_compensator\
   
 
 ## Acknowledgements
